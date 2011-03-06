@@ -90,4 +90,13 @@ class ArmotTest < ActiveSupport::TestCase
     post.destroy
     assert_equal 1, I18n::Backend::ActiveRecord::Translation.count
   end
+
+  test "should return original attribute when there are no translations" do
+    post = Post.first
+    post[:title] = "original title"
+    post.save!
+    I18n::Backend::ActiveRecord::Translation.delete_all
+
+    assert_equal "original title", Post.first.title
+  end
 end
