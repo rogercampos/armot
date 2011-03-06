@@ -14,5 +14,14 @@ ActiveRecord::Schema.define(:version => 1) do
     t.text   :interpolations
     t.boolean :is_proc, :default => false
   end
+
+  # Puret post translations to test the migration process
+  create_table :post_translations do |t|
+    t.references :post
+    t.string :locale
+    t.string :title
+    t.text :text
+    t.timestamps
+  end
 end
 
