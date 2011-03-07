@@ -10,6 +10,7 @@ class PuretMigrationTest < ActiveSupport::TestCase
     I18n::Backend::ActiveRecord::Translation.delete_all
 
     PostTranslation.create(:post_id => Post.first.id, :locale => "en", :title => 'English title', :text => "Some text")
+    PostTranslation.create(:post_id => Post.first.id, :locale => "es", :title => 'Titulo español')
     PostTranslation.create(:post_id => Post.last.id, :locale => "en", :title => 'Second english title')
   end
 
@@ -20,7 +21,7 @@ class PuretMigrationTest < ActiveSupport::TestCase
   test "db setup" do
     assert_equal 0, I18n::Backend::ActiveRecord::Translation.count
     assert_equal 2, Post.count
-    assert_equal 2, PostTranslation.count
+    assert_equal 3, PostTranslation.count
   end
 
   test "armot should not work" do
@@ -30,7 +31,7 @@ class PuretMigrationTest < ActiveSupport::TestCase
   test "should create i18n records for exiting puret translations" do
     Armot::PuretIntegration.migrate
 
-    assert_equal 3, I18n::Backend::ActiveRecord::Translation.count
+    assert_equal 4, I18n::Backend::ActiveRecord::Translation.count
   end
 
   test "translations with armot should work after migrate" do
@@ -44,6 +45,16 @@ class PuretMigrationTest < ActiveSupport::TestCase
     Armot::PuretIntegration.migrate
 
     assert_equal "translation missing: en.armot.posts.text.text_2", Post.last.text
+  end
+
+  test "should preserve translations" do
+    Armot::PuretIntegration.migrate
+
+    post = Post.first
+    I18n.locale = :es
+    assert_equal "Titulo español", post.title
+    I18n.locale = :en
+    assert_equal "English title", post.title
   end
 
 end

@@ -3,31 +3,31 @@ Armot
 
 Armot is a minimal rails 3 library for handle your model translations. It's
 heavily based on [puret](https://github.com/jo/puret), by Johannes Jörg
-Schmidt, since it does basically the same but relying on i18n ActiveRecord
+Schmidt, as it does basically the same but relying on the i18n ActiveRecord
 backend to store and fetch translations instead of custom tables.
 
 Choosing between puret or armot is as always a decision based on your custom
 requirements:
 
-1. If your application is multilingual, and it's translated with default yaml
+1. If your application is multilingual and it's translated with default yaml
    files with i18n Simple backend, you should definitely go with Puret. In this
    scenario your application contents are multilingual but doesn't dynamically
    change, they're always the same.
 
-2. If your application is multilingual, and also you want to give access to
-   change it's contents, you might have chose to use another i18n backend like
-   activerecord to be able to edit the translations in live. If this is your
-   scenario, armot may give you a few advantages:
+2. If your application is multilingual and also you want to give access to
+   change it's contents, you might have chosen another i18n backend like
+   activerecord to be able to edit the translations in live. In this case
+   armot gives you some advantages:
 
    - Your translations are centralized. If you're giving your users (maybe the
      admins of the site) the ability to change it's multilingual contents, it
      means that you already have an interface to edit I18n translations. Use it
      to edit your model translations too.
-   - Use of all i18n benefits for free, like fallbacks or speed up model
+   - Use all i18n advantages for free, like fallbacks or being able to speed up model
      translations with Flatten and Memoize.
-   - No worry for eager loading translations every time you load translated
+   - Don't worry about eager loading translations every time you load translated
      models.
-   - Easy setup, no external tables.
+   - Easy to set up, no external tables.
 
 
 Installing armot
