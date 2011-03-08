@@ -71,8 +71,21 @@ Your translated model will have different contents for each locale transparently
 
 
 Be aware that armot doesn't take care of any cache expiration. If you're using
-Memoize with I18n ActiveRecord backend you must take care yourself to reload
-the backend with an observer, for example.
+Memoize with I18n ActiveRecord backend you must remember to reload the backend
+with an observer, for example.
+
+
+Development with armot
+----------------------
+
+Since armot stores model translations in an I18n ActiveRecord backend, in
+development you also need to use that backend in order to see model
+translations.
+
+If you're using Simple backend in development I recomend you to chain it with
+the ActiveRecord backend, this way you can see both of them.
+
+    I18n.backend = I18n::Backend::Chain.new(I18n::Backend::ActiveRecord.new, I18n.backend)
 
 
 
