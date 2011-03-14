@@ -8,6 +8,7 @@ module Armot
           # attribute setter
           define_method "#{attribute}=" do |value|
             armot_attributes[I18n.locale][attribute] = value
+            I18n.backend.reload!
           end
 
           # attribute getter
