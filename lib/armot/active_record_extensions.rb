@@ -18,7 +18,7 @@ module Armot
             begin
               I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :raise => true
             rescue I18n::MissingTranslationData
-              self[attribute] || "translation missing: #{I18n.locale}.armot.#{self.class.to_s.underscore.pluralize}.#{attribute}.#{attribute}_#{id}"
+              self[attribute]
             end
           end
         end

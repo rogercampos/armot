@@ -25,7 +25,7 @@ class PuretMigrationTest < ActiveSupport::TestCase
   end
 
   test "armot should not work" do
-    assert_equal "translation missing: en.armot.posts.title.title_1", Post.first.title
+    assert_equal nil, Post.first.title
   end
 
   test "should create i18n records for exiting puret translations" do
@@ -44,7 +44,7 @@ class PuretMigrationTest < ActiveSupport::TestCase
   test "non existing translations reamain the same" do
     Armot::PuretIntegration.migrate
 
-    assert_equal "translation missing: en.armot.posts.text.text_2", Post.last.text
+    assert_equal nil, Post.last.text
   end
 
   test "should preserve translations" do
