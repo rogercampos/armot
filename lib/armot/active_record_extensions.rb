@@ -5,6 +5,15 @@ module Armot
         make_it_armot! unless included_modules.include?(InstanceMethods)
 
         attributes.each do |attribute|
+          self.class.instance_eval do
+            define_method "find_by_#{attribute}" do |value|
+              trans = I18n::Backend::ActiveRecord::Translation.find_by_locale_and_value(I18n.locale, value.to_yaml)
+              return send("where", {:"#{attribute}" => value}).first if trans.nil?
+
+              find trans.key.split("_").last
+            end
+          end
+
           # attribute setter
           define_method "#{attribute}=" do |value|
             armot_attributes[I18n.locale][attribute] = value

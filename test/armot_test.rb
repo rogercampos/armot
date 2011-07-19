@@ -99,4 +99,54 @@ class ArmotTest < ActiveSupport::TestCase
 
     assert_equal "original title", Post.first.title
   end
+
+  test "should find by translated title in database as a translation" do
+    post = Post.first
+    I18n.locale = :ca
+    post.title = "Catalan title"
+
+    I18n.locale = :en
+    post.title = "English title"
+    post.save!
+
+    I18n.locale = :ca
+    foo = Post.find_by_title "Catalan title"
+    assert_not_equal nil, foo
+    assert_equal "Catalan title", foo.title
+  end
+
+  test "should not find a translation in database that does not match the current locale" do
+    post = Post.first
+    I18n.locale = :ca
+    post.title = "Catalan title"
+
+    I18n.locale = :en
+    post.title = "English title"
+    post.save!
+
+    foo = Post.find_by_title "Catalan title"
+    assert_equal nil, foo
+  end
+
+  test "should find by translated title without translations" do
+    post = Post.first
+    post[:title] = "Eng title"
+    post.save!
+
+    I18n::Backend::ActiveRecord::Translation.delete_all
+
+    foo = Post.find_by_title "Eng title"
+    assert_not_equal nil, foo
+  end
+
+  test "should return nil when no translations and no match" do
+    post = Post.first
+    post[:title] = "Eng title"
+    post.save!
+
+    I18n::Backend::ActiveRecord::Translation.delete_all
+
+    foo = Post.find_by_title "Wrong title"
+    assert_equal nil, foo
+  end
 end
