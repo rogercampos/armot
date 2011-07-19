@@ -113,6 +113,9 @@ class ArmotTest < ActiveSupport::TestCase
     foo = Post.find_by_title "Catalan title"
     assert_not_equal nil, foo
     assert_equal "Catalan title", foo.title
+
+    foo = Post.find_by_title! "Catalan title"
+    assert_equal "Catalan title", foo.title
   end
 
   test "should not find a translation in database that does not match the current locale" do
@@ -128,6 +131,12 @@ class ArmotTest < ActiveSupport::TestCase
     assert_equal nil, foo
   end
 
+  test "should raise exception with bang version" do
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Post.find_by_title! "Non existant"
+    end
+  end
+
   test "should find by translated title without translations" do
     post = Post.first
     post[:title] = "Eng title"
@@ -137,6 +146,9 @@ class ArmotTest < ActiveSupport::TestCase
 
     foo = Post.find_by_title "Eng title"
     assert_not_equal nil, foo
+    assert_nothing_raised do
+      foo = Post.find_by_title! "Eng title"
+    end
   end
 
   test "should return nil when no translations and no match" do
@@ -148,5 +160,17 @@ class ArmotTest < ActiveSupport::TestCase
 
     foo = Post.find_by_title "Wrong title"
     assert_equal nil, foo
+  end
+
+  test "should raise an exception when no translationts and no match, with a bang" do
+    post = Post.first
+    post[:title] = "Eng title"
+    post.save!
+
+    I18n::Backend::ActiveRecord::Translation.delete_all
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Post.find_by_title! "Non existant"
+    end
   end
 end

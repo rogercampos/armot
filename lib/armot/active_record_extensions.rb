@@ -12,6 +12,18 @@ module Armot
 
               find trans.key.split("_").last
             end
+
+            define_method "find_by_#{attribute}!" do |value|
+              trans = I18n::Backend::ActiveRecord::Translation.find_by_locale_and_value(I18n.locale, value.to_yaml)
+
+              if trans.nil?
+                original = send("where", {:"#{attribute}" => value}).first
+                raise ActiveRecord::RecordNotFound if original.nil?
+                original
+              else
+                find trans.key.split("_").last
+              end
+            end
           end
 
           # attribute setter
