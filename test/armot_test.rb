@@ -173,4 +173,17 @@ class ArmotTest < ActiveSupport::TestCase
       Post.find_by_title! "Non existant"
     end
   end
+
+  test "_changed? method should work as expected" do
+    post = Post.first
+    post.title = "Other title"
+
+    assert_equal true, post.title_changed?
+
+    post.save!
+    assert_equal false, post.title_changed?
+
+    post.title = "Another change"
+    assert_equal true, post.title_changed?
+  end
 end

@@ -43,6 +43,10 @@ module Armot
               self[attribute]
             end
           end
+
+          define_method "#{attribute}_changed?" do
+            armot_attributes[I18n.locale][attribute].present?
+          end
         end
       end
 
@@ -67,12 +71,15 @@ module Armot
       # called after save
       def update_translations!
         return if armot_attributes.blank?
+
         armot_attributes.each do |locale, attributes|
           attributes.each do |k, v|
             translation = I18n::Backend::ActiveRecord::Translation.find_or_initialize_by_locale_and_key(locale.to_s, "armot.#{self.class.to_s.underscore.pluralize}.#{k}.#{k}_#{id}")
             translation.update_attribute(:value, v)
           end
         end
+
+        armot_attributes.clear
       end
 
       def remove_i18n_entries
