@@ -37,11 +37,15 @@ module Armot
             return armot_attributes[I18n.locale][attribute] if armot_attributes[I18n.locale][attribute]
             return if new_record?
 
-            begin
-              I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :raise => true
-            rescue I18n::MissingTranslationData
-              self[attribute]
+            trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token
+            return trans if trans != Armot.token
+
+            (I18n.available_locales - [I18n.locale]).each do |lang|
+              trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token, :locale => lang
+              break if trans != Armot.token
             end
+
+            trans == Armot.token ? self[attribute] : trans
           end
 
           define_method "#{attribute}_changed?" do
