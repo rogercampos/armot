@@ -23,6 +23,10 @@ def teardown_db
   end
 end
 
+class Comment < ActiveRecord::Base
+  armotize :msg
+end
+
 class Post < ActiveRecord::Base
   armotize :title, :text
   validates_presence_of :title

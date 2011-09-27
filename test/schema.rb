@@ -3,8 +3,11 @@ ActiveRecord::Schema.define(:version => 1) do
     t.string :title
     t.text   :text
     t.string :header
+  end
 
-    t.timestamps
+  create_table :comments do |t|
+    t.string :msg
+    t.string :title
   end
 
   # I18n ar translations table

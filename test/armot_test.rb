@@ -242,4 +242,24 @@ class ArmotTest < ActiveSupport::TestCase
       Post.where(:header => "2").find_by_title! "Hola"
     end
   end
+
+  test "should not mix armotized class methods" do
+    foo = Comment.methods.include?(:find_by_title)
+    assert_equal false, foo
+  end
+
+  test "should not mix armotized class methods in Post" do
+    foo = Post.methods.include?(:find_by_msg)
+    assert_equal false, foo
+  end
+
+  test "should include the method in Comment" do
+    foo = Comment.methods.include?(:find_by_msg)
+    assert_equal true, foo
+  end
+
+  test "should include the method in Post" do
+    foo = Post.methods.include?(:find_by_title)
+    assert_equal true, foo
+  end
 end

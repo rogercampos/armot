@@ -5,8 +5,8 @@ module Armot
         make_it_armot! unless included_modules.include?(InstanceMethods)
 
         attributes.each do |attribute|
-          self.class.instance_eval do
-            define_method "find_by_#{attribute}" do |value|
+          self.instance_eval <<-RUBY
+            def find_by_#{attribute}(value)
               trans = I18n::Backend::ActiveRecord::Translation.where(:locale => I18n.locale, :value => value.to_yaml)
               return send("where", {:"#{attribute}" => value}).first if trans.empty?
 
@@ -19,7 +19,7 @@ module Armot
               return res
             end
 
-            define_method "find_by_#{attribute}!" do |value|
+            def find_by_#{attribute}!(value)
               trans = I18n::Backend::ActiveRecord::Translation.where(:locale => I18n.locale, :value => value.to_yaml)
 
               if trans.empty?
@@ -36,7 +36,7 @@ module Armot
                 res ? res : raise(ActiveRecord::RecordNotFound)
               end
             end
-          end
+          RUBY
 
           # attribute setter
           define_method "#{attribute}=" do |value|
