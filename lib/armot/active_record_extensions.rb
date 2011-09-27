@@ -10,12 +10,13 @@ module Armot
               trans = I18n::Backend::ActiveRecord::Translation.where(:locale => I18n.locale, :value => value.to_yaml)
               return send("where", {:"#{attribute}" => value}).first if trans.empty?
 
+              res = nil
               trans.each do |x|
                 res = find_by_id x.key.split("_").last
-                return res if res
+                break if res
               end
 
-              nil
+              return res
             end
 
             define_method "find_by_#{attribute}!" do |value|
@@ -26,12 +27,13 @@ module Armot
                 raise ActiveRecord::RecordNotFound if original.nil?
                 original
               else
+                res = nil
                 trans.each do |x|
                   res = find_by_id x.key.split("_").last
-                  return res if res
+                  break if res
                 end
 
-                raise ActiveRecord::RecordNotFound
+                res ? res : raise(ActiveRecord::RecordNotFound)
               end
             end
           end
