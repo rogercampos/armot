@@ -217,4 +217,29 @@ class ArmotTest < ActiveSupport::TestCase
     post.title = "Another change"
     assert_equal true, post.title_changed?
   end
+
+  test "should find the correct record when there are conflicting names and scopes" do
+    post = Post.first
+    post.title = "Hola"
+    post.header = "1"
+    post.save!
+
+    post2 = Post.create! :title => "Hola", :header => "2"
+
+    foo = Post.where(:header => "2").find_by_title "Hola"
+    assert_equal post2, foo
+  end
+
+  test "should find the correct record when there are conflicting names and scopes with bang" do
+    post = Post.first
+    post.title = "Hola"
+    post.header = "1"
+    post.save!
+
+    post2 = Post.create! :title => "Hola", :header => "2"
+
+    assert_nothing_raised do
+      Post.where(:header => "2").find_by_title! "Hola"
+    end
+  end
 end

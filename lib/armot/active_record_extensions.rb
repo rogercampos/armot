@@ -7,21 +7,31 @@ module Armot
         attributes.each do |attribute|
           self.class.instance_eval do
             define_method "find_by_#{attribute}" do |value|
-              trans = I18n::Backend::ActiveRecord::Translation.find_by_locale_and_value(I18n.locale, value.to_yaml)
-              return send("where", {:"#{attribute}" => value}).first if trans.nil?
+              trans = I18n::Backend::ActiveRecord::Translation.where(:locale => I18n.locale, :value => value.to_yaml)
+              return send("where", {:"#{attribute}" => value}).first if trans.empty?
 
-              find_by_id trans.key.split("_").last
+              trans.each do |x|
+                res = find_by_id x.key.split("_").last
+                return res if res
+              end
+
+              nil
             end
 
             define_method "find_by_#{attribute}!" do |value|
-              trans = I18n::Backend::ActiveRecord::Translation.find_by_locale_and_value(I18n.locale, value.to_yaml)
+              trans = I18n::Backend::ActiveRecord::Translation.where(:locale => I18n.locale, :value => value.to_yaml)
 
-              if trans.nil?
+              if trans.empty?
                 original = send("where", {:"#{attribute}" => value}).first
                 raise ActiveRecord::RecordNotFound if original.nil?
                 original
               else
-                find trans.key.split("_").last
+                trans.each do |x|
+                  res = find_by_id x.key.split("_").last
+                  return res if res
+                end
+
+                raise ActiveRecord::RecordNotFound
               end
             end
           end

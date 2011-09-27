@@ -2,6 +2,7 @@ ActiveRecord::Schema.define(:version => 1) do
   create_table :posts do |t|
     t.string :title
     t.text   :text
+    t.string :header
 
     t.timestamps
   end
