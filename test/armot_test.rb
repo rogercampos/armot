@@ -141,6 +141,27 @@ class ArmotTest < ActiveSupport::TestCase
     assert_equal nil, foo
   end
 
+  test "should return nil when finding for an existant value but incompatible with the current scope" do
+    post = Post.first
+    I18n.locale = :ca
+    post.title = "Catalan title"
+    post.save!
+
+    foo = Post.where("title != 'Catalan title'").find_by_title "Catalan title"
+    assert_equal nil, foo
+  end
+
+  test "should raise a RecordNotFound error when finding for an existant value but incompatible with the current scope with bang!" do
+    post = Post.first
+    I18n.locale = :ca
+    post.title = "Catalan title"
+    post.save!
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Post.where("title != 'Catalan title'").find_by_title! "Catalan title"
+    end
+  end
+
   test "should raise exception with bang version" do
     assert_raise(ActiveRecord::RecordNotFound) do
       Post.find_by_title! "Non existant"

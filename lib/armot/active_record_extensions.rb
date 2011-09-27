@@ -10,7 +10,7 @@ module Armot
               trans = I18n::Backend::ActiveRecord::Translation.find_by_locale_and_value(I18n.locale, value.to_yaml)
               return send("where", {:"#{attribute}" => value}).first if trans.nil?
 
-              find trans.key.split("_").last
+              find_by_id trans.key.split("_").last
             end
 
             define_method "find_by_#{attribute}!" do |value|
