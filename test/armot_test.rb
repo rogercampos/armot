@@ -1,5 +1,14 @@
 require 'test_helper'
 
+
+def to_method_name(name)
+  if Gem::Version.new(RUBY_VERSION.dup) >= Gem::Version.new("1.9")
+    name.to_sym
+  else
+    name.to_s
+  end
+end
+
 class ArmotTest < ActiveSupport::TestCase
   def setup
     setup_db
@@ -244,22 +253,22 @@ class ArmotTest < ActiveSupport::TestCase
   end
 
   test "should not mix armotized class methods" do
-    foo = Comment.methods.include?(:find_by_title)
+    foo = Comment.methods.include?(to_method_name(:find_by_title))
     assert_equal false, foo
   end
 
   test "should not mix armotized class methods in Post" do
-    foo = Post.methods.include?(:find_by_msg)
+    foo = Post.methods.include?(to_method_name(:find_by_msg))
     assert_equal false, foo
   end
 
   test "should include the method in Comment" do
-    foo = Comment.methods.include?(:find_by_msg)
+    foo = Comment.methods.include?(to_method_name(:find_by_msg))
     assert_equal true, foo
   end
 
   test "should include the method in Post" do
-    foo = Post.methods.include?(:find_by_title)
+    foo = Post.methods.include?(to_method_name(:find_by_title))
     assert_equal true, foo
   end
 end
