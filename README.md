@@ -1,6 +1,9 @@
 Armot
 =====
 
+[![Build Status](https://secure.travis-ci.org/rogercampos/armot.png)](http://travis-ci.org/rogercampos/armot)
+
+
 Armot is a minimal rails 3 library for handle your model translations. It's
 heavily based on [puret](https://github.com/jo/puret), by Johannes Jörg
 Schmidt, as it does basically the same but relying on the i18n ActiveRecord
