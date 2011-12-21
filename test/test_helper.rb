@@ -32,6 +32,14 @@ class Post < ActiveRecord::Base
   validates_presence_of :title
 end
 
+class Product < ActiveRecord::Base
+  armotize :name
+
+  def name=(value)
+    super(value + " customized")
+  end
+end
+
 # Puret translation model to test migration process
 class PostTranslation < ActiveRecord::Base
 end

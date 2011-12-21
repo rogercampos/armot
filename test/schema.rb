@@ -5,6 +5,10 @@ ActiveRecord::Schema.define(:version => 1) do
     t.string :header
   end
 
+  create_table :products do |t|
+    t.string :name
+  end
+
   create_table :comments do |t|
     t.string :msg
     t.string :title

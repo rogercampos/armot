@@ -271,4 +271,24 @@ class ArmotTest < ActiveSupport::TestCase
     foo = Post.methods.include?(to_method_name(:find_by_title))
     assert_equal true, foo
   end
+
+  test "should be able to use super from an overrided setter" do
+    # Product class has 'name' setter redefined
+    a = Product.create
+
+    I18n.locale = :ca
+    a.name = "Catalan foo"
+
+    I18n.locale = :en
+    a.name = "English foo"
+    a.save!
+
+    a.reload
+
+    I18n.locale = :ca
+    assert_equal "Catalan foo customized", a.name
+    I18n.locale = :en
+    assert_equal "English foo customized", a.name
+
+  end
 end

@@ -4,6 +4,8 @@ module Armot
       def armotize(*attributes)
         make_it_armot! unless included_modules.include?(InstanceMethods)
 
+        mixin = Module.new
+
         attributes.each do |attribute|
           self.instance_eval <<-RUBY
             def find_by_#{attribute}(value)
@@ -38,32 +40,35 @@ module Armot
             end
           RUBY
 
-          # attribute setter
-          define_method "#{attribute}=" do |value|
-            armot_attributes[I18n.locale][attribute] = value
-            I18n.backend.reload!
-          end
-
-          # attribute getter
-          define_method attribute do
-            return armot_attributes[I18n.locale][attribute] if armot_attributes[I18n.locale][attribute]
-            return if new_record?
-
-            trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token
-            return trans if trans != Armot.token
-
-            (I18n.available_locales - [I18n.locale]).each do |lang|
-              trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token, :locale => lang
-              break if trans != Armot.token
+          mixin.module_eval <<-STR
+            def #{attribute}=(value)
+              armot_attributes[I18n.locale]['#{attribute}'] = value
+              I18n.backend.reload!
             end
 
-            trans == Armot.token ? self[attribute] : trans
-          end
+            def #{attribute}
+              return armot_attributes[I18n.locale]['#{attribute}'] if armot_attributes[I18n.locale]['#{attribute}']
+              return if new_record?
 
-          define_method "#{attribute}_changed?" do
-            armot_attributes[I18n.locale][attribute].present?
-          end
+              trans = I18n.t "#{attribute}_\#{id}", :scope => "armot.\#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token
+              return trans if trans != Armot.token
+
+              (I18n.available_locales - [I18n.locale]).each do |lang|
+                trans = I18n.t "#{attribute}_\#{id}", :scope => "armot.\#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token, :locale => lang
+                break if trans != Armot.token
+              end
+
+              trans == Armot.token ? self[:#{attribute}] : trans
+            end
+
+            def #{attribute}_changed?
+              armot_attributes[I18n.locale]['#{attribute}'].present?
+            end
+          STR
         end
+
+        self.const_set("ArmotInstanceMethods", mixin)
+        include self.const_get("ArmotInstanceMethods") unless self.included_modules.include?("ArmotInstanceMethods")
       end
 
     private
