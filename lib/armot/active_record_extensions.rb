@@ -9,7 +9,14 @@ module Armot
         attributes.each do |attribute|
           self.instance_eval <<-RUBY
             def find_by_#{attribute}(value)
-              trans = I18n::Backend::ActiveRecord::Translation.where(:locale => I18n.locale, :value => value.to_yaml)
+              t = I18n::Backend::ActiveRecord::Translation.arel_table
+              trans = I18n::Backend::ActiveRecord::Translation.where(
+                :locale => I18n.locale,
+                :value => value.to_yaml
+              ).where(
+                t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
+              ).all
+
               return send("where", {:"#{attribute}" => value}).first if trans.empty?
 
               res = nil
@@ -18,11 +25,17 @@ module Armot
                 break if res
               end
 
-              return res
+              res
             end
 
             def find_by_#{attribute}!(value)
-              trans = I18n::Backend::ActiveRecord::Translation.where(:locale => I18n.locale, :value => value.to_yaml)
+              t = I18n::Backend::ActiveRecord::Translation.arel_table
+              trans = I18n::Backend::ActiveRecord::Translation.where(
+                :locale => I18n.locale,
+                :value => value.to_yaml
+              ).where(
+                t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
+              ).all
 
               if trans.empty?
                 original = send("where", {:"#{attribute}" => value}).first
