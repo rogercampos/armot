@@ -83,8 +83,8 @@ module Armot
 
         self.const_set("ArmotInstanceMethods", instance_mixin)
         self.const_set("ArmotClassMethods", class_mixin)
-        include self.const_get("ArmotInstanceMethods") unless self.included_modules.include?("ArmotInstanceMethods")
-        extend self.const_get("ArmotClassMethods") unless self.singleton_class.included_modules.include?("ArmotClassMethods")
+        include self.const_get("ArmotInstanceMethods") unless self.included_modules.map(&:to_s).include?("#{self}::ArmotInstanceMethods")
+        extend self.const_get("ArmotClassMethods") unless self.singleton_class.included_modules.map(&:to_s).include?("#{self}::ArmotClassMethods")
       end
 
     private
