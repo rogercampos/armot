@@ -7,51 +7,49 @@ module Armot
         mixin = Module.new
 
         attributes.each do |attribute|
-          self.instance_eval <<-RUBY
-            def find_by_#{attribute}(value)
-              t = I18n::Backend::ActiveRecord::Translation.arel_table
-              trans = I18n::Backend::ActiveRecord::Translation.where(
-                :locale => I18n.locale,
-                :value => value.to_yaml
-              ).where(
-                t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
-              ).all
+          define_singleton_method :"find_by_#{attribute}" do |value|
+            t = I18n::Backend::ActiveRecord::Translation.arel_table
+            trans = I18n::Backend::ActiveRecord::Translation.where(
+              :locale => I18n.locale,
+              :value => value.to_yaml
+            ).where(
+              t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
+            ).all
 
-              return send("where", {:"#{attribute}" => value}).first if trans.empty?
+            return send("where", {:"#{attribute}" => value}).first if trans.empty?
 
+            res = nil
+            trans.each do |x|
+              res = find_by_id x.key.split("_").last
+              break if res
+            end
+
+            res
+          end
+
+          define_singleton_method :"find_by_#{attribute}!" do |value|
+            t = I18n::Backend::ActiveRecord::Translation.arel_table
+            trans = I18n::Backend::ActiveRecord::Translation.where(
+              :locale => I18n.locale,
+              :value => value.to_yaml
+            ).where(
+              t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
+            ).all
+
+            if trans.empty?
+              original = send("where", {:"#{attribute}" => value}).first
+              raise ActiveRecord::RecordNotFound if original.nil?
+              original
+            else
               res = nil
               trans.each do |x|
                 res = find_by_id x.key.split("_").last
                 break if res
               end
 
-              res
+              res ? res : raise(ActiveRecord::RecordNotFound)
             end
-
-            def find_by_#{attribute}!(value)
-              t = I18n::Backend::ActiveRecord::Translation.arel_table
-              trans = I18n::Backend::ActiveRecord::Translation.where(
-                :locale => I18n.locale,
-                :value => value.to_yaml
-              ).where(
-                t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
-              ).all
-
-              if trans.empty?
-                original = send("where", {:"#{attribute}" => value}).first
-                raise ActiveRecord::RecordNotFound if original.nil?
-                original
-              else
-                res = nil
-                trans.each do |x|
-                  res = find_by_id x.key.split("_").last
-                  break if res
-                end
-
-                res ? res : raise(ActiveRecord::RecordNotFound)
-              end
-            end
-          RUBY
+          end
 
           mixin.module_eval <<-STR
             def #{attribute}=(value)
