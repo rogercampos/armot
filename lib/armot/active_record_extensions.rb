@@ -4,54 +4,57 @@ module Armot
       def armotize(*attributes)
         make_it_armot! unless included_modules.include?(InstanceMethods)
 
-        mixin = Module.new
+        instance_mixin = Module.new
+        class_mixin = Module.new
 
         attributes.each do |attribute|
-          define_singleton_method :"find_by_#{attribute}" do |value|
-            t = I18n::Backend::ActiveRecord::Translation.arel_table
-            trans = I18n::Backend::ActiveRecord::Translation.where(
-              :locale => I18n.locale,
-              :value => value.to_yaml
-            ).where(
-              t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
-            ).all
+          class_mixin.module_eval do
+            define_method :"find_by_#{attribute}" do |value|
+              t = I18n::Backend::ActiveRecord::Translation.arel_table
+              trans = I18n::Backend::ActiveRecord::Translation.where(
+                :locale => I18n.locale,
+                :value => value.to_yaml
+              ).where(
+                t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
+              ).all
 
-            return send("where", {:"#{attribute}" => value}).first if trans.empty?
+              return send("where", {:"#{attribute}" => value}).first if trans.empty?
 
-            res = nil
-            trans.each do |x|
-              res = find_by_id x.key.split("_").last
-              break if res
-            end
-
-            res
-          end
-
-          define_singleton_method :"find_by_#{attribute}!" do |value|
-            t = I18n::Backend::ActiveRecord::Translation.arel_table
-            trans = I18n::Backend::ActiveRecord::Translation.where(
-              :locale => I18n.locale,
-              :value => value.to_yaml
-            ).where(
-              t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
-            ).all
-
-            if trans.empty?
-              original = send("where", {:"#{attribute}" => value}).first
-              raise ActiveRecord::RecordNotFound if original.nil?
-              original
-            else
               res = nil
               trans.each do |x|
                 res = find_by_id x.key.split("_").last
                 break if res
               end
 
-              res ? res : raise(ActiveRecord::RecordNotFound)
+              res
+            end
+
+            define_method :"find_by_#{attribute}!" do |value|
+              t = I18n::Backend::ActiveRecord::Translation.arel_table
+              trans = I18n::Backend::ActiveRecord::Translation.where(
+                :locale => I18n.locale,
+                :value => value.to_yaml
+              ).where(
+                t[:key].matches("armot.#{self.to_s.underscore.pluralize}%")
+              ).all
+
+              if trans.empty?
+                original = send("where", {:"#{attribute}" => value}).first
+                raise ActiveRecord::RecordNotFound if original.nil?
+                original
+              else
+                res = nil
+                trans.each do |x|
+                  res = find_by_id x.key.split("_").last
+                  break if res
+                end
+
+                res ? res : raise(ActiveRecord::RecordNotFound)
+              end
             end
           end
 
-          mixin.module_eval do
+          instance_mixin.module_eval do
             define_method :"#{attribute}=" do |value|
               armot_attributes[I18n.locale]["#{attribute}"] = value
               I18n.backend.reload!
@@ -78,8 +81,10 @@ module Armot
           end
         end
 
-        self.const_set("ArmotInstanceMethods", mixin)
+        self.const_set("ArmotInstanceMethods", instance_mixin)
+        self.const_set("ArmotClassMethods", class_mixin)
         include self.const_get("ArmotInstanceMethods") unless self.included_modules.include?("ArmotInstanceMethods")
+        extend self.const_get("ArmotClassMethods") unless self.singleton_class.included_modules.include?("ArmotClassMethods")
       end
 
     private

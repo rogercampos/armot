@@ -272,7 +272,7 @@ class ArmotTest < ActiveSupport::TestCase
     assert_equal true, foo
   end
 
-  test "should be able to use super from an overrided setter" do
+  test "should be able to use super from an overrided setter for instance methods" do
     # Product class has 'name' setter redefined
     a = Product.create
 
@@ -289,6 +289,21 @@ class ArmotTest < ActiveSupport::TestCase
     assert_equal "Catalan foo customized", a.name
     I18n.locale = :en
     assert_equal "English foo customized", a.name
+  end
 
+  test "should be able to use super for class methods" do
+    a = Product.create
+    I18n.locale = :ca
+    a.name = "Catalan foo"
+
+    I18n.locale = :en
+    a.name = "English foo"
+    a.save!
+
+    a.reload
+    I18n.locale = :ca
+
+    res = Product.find_by_name("Catalan foo customized")
+    assert_equal "Catalan foo customized_override", res
   end
 end
