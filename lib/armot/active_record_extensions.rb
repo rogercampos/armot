@@ -51,31 +51,31 @@ module Armot
             end
           end
 
-          mixin.module_eval <<-STR
-            def #{attribute}=(value)
-              armot_attributes[I18n.locale]['#{attribute}'] = value
+          mixin.module_eval do
+            define_method :"#{attribute}=" do |value|
+              armot_attributes[I18n.locale]["#{attribute}"] = value
               I18n.backend.reload!
             end
 
-            def #{attribute}
-              return armot_attributes[I18n.locale]['#{attribute}'] if armot_attributes[I18n.locale]['#{attribute}']
+            define_method :"#{attribute}_changed?" do
+              armot_attributes[I18n.locale]["#{attribute}"].present?
+            end
+
+            define_method :"#{attribute}" do
+              return armot_attributes[I18n.locale]["#{attribute}"] if armot_attributes[I18n.locale]["#{attribute}"]
               return if new_record?
 
-              trans = I18n.t "#{attribute}_\#{id}", :scope => "armot.\#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token
+              trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token
               return trans if trans != Armot.token
 
               (I18n.available_locales - [I18n.locale]).each do |lang|
-                trans = I18n.t "#{attribute}_\#{id}", :scope => "armot.\#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token, :locale => lang
+                trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token, :locale => lang
                 break if trans != Armot.token
               end
 
-              trans == Armot.token ? self[:#{attribute}] : trans
+              trans == Armot.token ? self[:"#{attribute}"] : trans
             end
-
-            def #{attribute}_changed?
-              armot_attributes[I18n.locale]['#{attribute}'].present?
-            end
-          STR
+          end
         end
 
         self.const_set("ArmotInstanceMethods", mixin)
