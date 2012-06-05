@@ -38,6 +38,10 @@ class Product < ActiveRecord::Base
   def name=(value)
     super(value + " customized")
   end
+
+  def self.find_by_name(value)
+    "#{super(value).try(:name)}_override"
+  end
 end
 
 # Puret translation model to test migration process
