@@ -109,16 +109,6 @@ class ArmotTest < ActiveSupport::TestCase
     assert_equal "original title", Post.first.title
   end
 
-  test "should look for translations in other languages before fail" do
-    post = Post.first
-    I18n::Backend::ActiveRecord::Translation.delete_all
-    I18n.locale = :ca
-    post.title = "Catalan title"
-    post.save!
-    I18n.locale = :it
-    assert_equal "Catalan title", post.title
-  end
-
   test "should find by translated title in database as a translation" do
     post = Post.first
     I18n.locale = :ca

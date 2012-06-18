@@ -71,11 +71,6 @@ module Armot
               trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token
               return trans if trans != Armot.token
 
-              (I18n.available_locales - [I18n.locale]).each do |lang|
-                trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token, :locale => lang
-                break if trans != Armot.token
-              end
-
               trans == Armot.token ? self[:"#{attribute}"] : trans
             end
           end
