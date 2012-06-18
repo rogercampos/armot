@@ -73,12 +73,12 @@ module Armot
                 end
               end
 
-              return if new_record?
+              if persisted?
+                trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token
+                return trans if trans != Armot.token
+              end
 
-              trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token
-              return trans if trans != Armot.token
-
-              trans == Armot.token ? self[:"#{attribute}"] : trans
+              ( new_record? || trans == Armot.token) ? self[:"#{attribute}"] : trans
             end
           end
         end

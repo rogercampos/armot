@@ -13,6 +13,7 @@ class ArmotTest < ActiveSupport::TestCase
   def setup
     setup_db
     I18n.locale = I18n.default_locale = :en
+    I18n.fallbacks.clear
     Post.create(:title => 'English title')
   end
 
@@ -318,5 +319,11 @@ class ArmotTest < ActiveSupport::TestCase
     post.title = "Dragon ball"
     I18n.locale = :es
     assert_equal "Bola de drac", post.title
+  end
+
+  test "should return db-column values even if not persisted" do
+    post = Post.new
+    post[:title] = "Hello world"
+    assert_equal "Hello world", post.title
   end
 end
