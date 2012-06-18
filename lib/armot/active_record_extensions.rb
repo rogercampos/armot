@@ -66,6 +66,13 @@ module Armot
 
             define_method :"#{attribute}" do
               return armot_attributes[I18n.locale]["#{attribute}"] if armot_attributes[I18n.locale]["#{attribute}"]
+
+              if armot_attributes.any?
+                I18n.fallbacks[I18n.locale].each do |fallback|
+                  return armot_attributes[fallback]["#{attribute}"] if armot_attributes[fallback]["#{attribute}"]
+                end
+              end
+
               return if new_record?
 
               trans = I18n.t "#{attribute}_#{id}", :scope => "armot.#{self.class.to_s.underscore.pluralize}.#{attribute}", :default => Armot.token

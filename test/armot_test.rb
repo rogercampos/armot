@@ -297,8 +297,8 @@ class ArmotTest < ActiveSupport::TestCase
     assert_equal "Catalan foo customized_override", res
   end
 
-  test "should return the default locale version if the current translation can't be found" do
-    I18n.default_locale = :ca
+  test "should respect I18n standard fallback system" do
+    I18n.fallbacks.map :es => :ca
     post = Post.first
     I18n.locale = :ca
     post.title = "Bola de drac"
@@ -306,6 +306,17 @@ class ArmotTest < ActiveSupport::TestCase
     post.title = "Dragon ball"
     I18n.locale = :es
     post.save!
+    assert_equal "Bola de drac", post.title
+  end
+
+  test "should return the fallback even if not saved" do
+    I18n.fallbacks.map :es => :ca
+    post = Post.first
+    I18n.locale = :ca
+    post.title = "Bola de drac"
+    I18n.locale = :en
+    post.title = "Dragon ball"
+    I18n.locale = :es
     assert_equal "Bola de drac", post.title
   end
 end
