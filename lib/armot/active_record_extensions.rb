@@ -52,12 +52,15 @@ module Armot
                 res ? res : raise(ActiveRecord::RecordNotFound)
               end
             end
+
+            # To implement by armotized classes
+            define_method :"reload_armot!" do
+            end
           end
 
           instance_mixin.module_eval do
             define_method :"#{attribute}=" do |value|
               armot_attributes[I18n.locale]["#{attribute}"] = value
-              I18n.backend.reload!
             end
 
             define_method :"#{attribute}_changed?" do
@@ -117,6 +120,7 @@ module Armot
           end
         end
 
+        self.class.reload_armot!
         armot_attributes.clear
       end
 
