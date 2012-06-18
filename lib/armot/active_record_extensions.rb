@@ -107,9 +107,8 @@ module Armot
         @armot_attributes ||= Hash.new { |hash, key| hash[key] = {} }
       end
 
-      # called after save
       def update_translations!
-        return if armot_attributes.blank?
+        return if armot_attributes.empty?
 
         armot_attributes.each do |locale, attributes|
           attributes.each do |k, v|
