@@ -52,10 +52,6 @@ module Armot
                 res ? res : raise(ActiveRecord::RecordNotFound)
               end
             end
-
-            # To implement by armotized classes
-            define_method :"reload_armot!" do
-            end
           end
 
           instance_mixin.module_eval do
@@ -120,7 +116,7 @@ module Armot
           end
         end
 
-        self.class.reload_armot!
+        reload_armot! if respond_to?(:"reload_armot!")
         armot_attributes.clear
       end
 
