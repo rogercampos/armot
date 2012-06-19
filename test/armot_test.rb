@@ -340,4 +340,8 @@ class ArmotTest < ActiveSupport::TestCase
 
     assert_equal res, 1
   end
+
+  test ".armotized_attributes" do
+    assert_equal [:title, :text], Post.armotized_attributes
+  end
 end

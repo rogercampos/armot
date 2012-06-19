@@ -7,6 +7,12 @@ module Armot
         instance_mixin = Module.new
         class_mixin = Module.new
 
+        class_mixin.module_eval do
+          define_method :armotized_attributes do
+            attributes.map(&:to_sym)
+          end
+        end
+
         attributes.each do |attribute|
           class_mixin.module_eval do
             define_method :"find_by_#{attribute}" do |value|
