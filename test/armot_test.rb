@@ -344,4 +344,13 @@ class ArmotTest < ActiveSupport::TestCase
   test ".armotized_attributes" do
     assert_equal [:title, :text], Post.armotized_attributes
   end
+
+  test "multiple armotize calls raise an error" do
+    assert_raise Armot::DoubleDeclarationError do
+      class FooBar < ActiveRecord::Base
+        armotize :foo
+        armotize :bar
+      end
+    end
+  end
 end
