@@ -326,4 +326,18 @@ class ArmotTest < ActiveSupport::TestCase
     post[:title] = "Hello world"
     assert_equal "Hello world", post.title
   end
+
+  test "should fetch all translations with only one query with multiple armotized parameters" do
+    post = Post.first
+    post.text = "English text"
+    post.save!
+
+    res = count_query_reads_for("I18n::Backend::ActiveRecord::Translation") do
+      a = Post.first
+      a.text
+      a.title
+    end
+
+    assert_equal res, 1
+  end
 end

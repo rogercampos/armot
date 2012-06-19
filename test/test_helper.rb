@@ -47,3 +47,14 @@ end
 # Puret translation model to test migration process
 class PostTranslation < ActiveRecord::Base
 end
+
+def count_query_reads_for(clazz)
+  old = ActiveRecord::Base.logger
+  log_stream = StringIO.new
+  logger = Logger.new(log_stream)
+  ActiveRecord::Base.logger = logger
+  yield
+  ActiveRecord::Base.logger = old
+  logger.close
+  log_stream.string.scan(/#{clazz} Load/).size
+end
