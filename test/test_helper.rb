@@ -58,3 +58,14 @@ def count_query_reads_for(clazz)
   logger.close
   log_stream.string.scan(/#{clazz} Load/).size
 end
+
+def count_query_updates_for(clazz)
+  old = ActiveRecord::Base.logger
+  log_stream = StringIO.new
+  logger = Logger.new(log_stream)
+  ActiveRecord::Base.logger = logger
+  yield
+  ActiveRecord::Base.logger = old
+  logger.close
+  log_stream.string.scan(/UPDATE \"#{clazz.constantize.table_name}\"/).size
+end

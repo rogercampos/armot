@@ -338,7 +338,23 @@ class ArmotTest < ActiveSupport::TestCase
       a.title
     end
 
-    assert_equal res, 1
+    assert_equal 1, res
+  end
+
+  test "should not save the record if it has not changed" do
+    post = Post.last
+    post.title = "ENG title"
+    post.text = "English text"
+    post.save!
+
+    res = count_query_updates_for("I18n::Backend::ActiveRecord::Translation") do
+      a = Post.first
+      a.title = "ENG Second version"
+      a.text = "English text"
+      a.save!
+    end
+
+    assert_equal 1, res
   end
 
   test ".armotized_attributes" do
@@ -352,5 +368,11 @@ class ArmotTest < ActiveSupport::TestCase
         armotize :bar
       end
     end
+  end
+
+  test "the setter method shold return the assigned value" do
+    post = Post.last
+    res = (post.title = "Foo bar title")
+    assert_equal "Foo bar title", res
   end
 end
