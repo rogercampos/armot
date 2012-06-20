@@ -10,6 +10,8 @@ def to_method_name(name)
 end
 
 class ArmotTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Pending
+
   def setup
     setup_db
     I18n.locale = I18n.default_locale = :en
@@ -328,33 +330,37 @@ class ArmotTest < ActiveSupport::TestCase
   end
 
   test "should fetch all translations with only one query with multiple armotized parameters" do
-    post = Post.first
-    post.text = "English text"
-    post.save!
+    pending "should be implemented in the active_record specific gem" do
+      post = Post.first
+      post.text = "English text"
+      post.save!
 
-    res = count_query_reads_for("I18n::Backend::ActiveRecord::Translation") do
-      a = Post.first
-      a.text
-      a.title
+      res = count_query_reads_for("I18n::Backend::ActiveRecord::Translation") do
+        a = Post.first
+        a.text
+        a.title
+      end
+
+      assert_equal 1, res
     end
-
-    assert_equal 1, res
   end
 
   test "should not save the record if it has not changed" do
-    post = Post.last
-    post.title = "ENG title"
-    post.text = "English text"
-    post.save!
+    pending "should be implemented in the active_record specific gem" do
+      post = Post.last
+      post.title = "ENG title"
+      post.text = "English text"
+      post.save!
 
-    res = count_query_updates_for("I18n::Backend::ActiveRecord::Translation") do
-      a = Post.first
-      a.title = "ENG Second version"
-      a.text = "English text"
-      a.save!
+      res = count_query_updates_for("I18n::Backend::ActiveRecord::Translation") do
+        a = Post.first
+        a.title = "ENG Second version"
+        a.text = "English text"
+        a.save!
+      end
+
+      assert_equal 1, res
     end
-
-    assert_equal 1, res
   end
 
   test ".armotized_attributes" do
