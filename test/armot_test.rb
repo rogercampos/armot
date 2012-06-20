@@ -10,6 +10,8 @@ def to_method_name(name)
 end
 
 class ArmotTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Pending
+
   def setup
     setup_db
     I18n.locale = I18n.default_locale = :en
@@ -325,5 +327,58 @@ class ArmotTest < ActiveSupport::TestCase
     post = Post.new
     post[:title] = "Hello world"
     assert_equal "Hello world", post.title
+  end
+
+  test "should fetch all translations with only one query with multiple armotized parameters" do
+    pending "should be implemented in the active_record specific gem" do
+      post = Post.first
+      post.text = "English text"
+      post.save!
+
+      res = count_query_reads_for("I18n::Backend::ActiveRecord::Translation") do
+        a = Post.first
+        a.text
+        a.title
+      end
+
+      assert_equal 1, res
+    end
+  end
+
+  test "should not save the record if it has not changed" do
+    pending "should be implemented in the active_record specific gem" do
+      post = Post.last
+      post.title = "ENG title"
+      post.text = "English text"
+      post.save!
+
+      res = count_query_updates_for("I18n::Backend::ActiveRecord::Translation") do
+        a = Post.first
+        a.title = "ENG Second version"
+        a.text = "English text"
+        a.save!
+      end
+
+      assert_equal 1, res
+    end
+  end
+
+  test ".armotized_attributes" do
+    assert_equal [:title, :text], Post.armotized_attributes
+  end
+
+  test "multiple armotize calls raise an error" do
+    assert_raise Armot::DoubleDeclarationError do
+      class FooBar < ActiveRecord::Base
+        armotize :foo
+        armotize :bar
+      end
+    end
+  end
+
+  test "the setter method shold return the assigned value" do
+    post = Post.last
+    res = (post.title = "Foo bar title")
+    assert_equal "Foo bar title", res
   end
 end

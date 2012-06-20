@@ -2,10 +2,20 @@ module Armot
   module ActiveRecordExtensions
     module ClassMethods
       def armotize(*attributes)
-        make_it_armot! unless included_modules.include?(InstanceMethods)
+        if included_modules.include?(InstanceMethods)
+          raise DoubleDeclarationError, "armotize can only be called once in #{self}"
+        end
+
+        make_it_armot!
 
         instance_mixin = Module.new
         class_mixin = Module.new
+
+        class_mixin.module_eval do
+          define_method :armotized_attributes do
+            attributes.map(&:to_sym)
+          end
+        end
 
         attributes.each do |attribute|
           class_mixin.module_eval do
