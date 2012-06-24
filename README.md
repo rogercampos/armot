@@ -141,7 +141,7 @@ setter like this:
 
     class Post
       def slug_url=(value)
-        self[:value] = ConvertToSafeUrl(value)
+        self[:slug_url] = ConvertToSafeUrl(value)
       end
 
       def to_param
