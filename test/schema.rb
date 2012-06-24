@@ -3,6 +3,7 @@ ActiveRecord::Schema.define(:version => 1) do
     t.string :title
     t.text   :text
     t.string :header
+    t.string :type
   end
 
   create_table :products do |t|

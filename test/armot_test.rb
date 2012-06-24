@@ -381,4 +381,110 @@ class ArmotTest < ActiveSupport::TestCase
     res = (post.title = "Foo bar title")
     assert_equal "Foo bar title", res
   end
+
+  test "an armotized class should not have armotized accessors by default" do
+    post = Post.last
+    assert_equal false, post.respond_to?(:title_en)
+  end
+
+  test ".define_localized_accessors_for should define localized accessors for the current locales" do
+    post = Post.last
+    I18n.locale = :es
+    post.title = "SP titulo"
+    post.save! # Just save here to make I18n.available_locales aware of both :es and :en
+
+    assert_equal [:es, :en].sort, I18n.available_locales.sort
+
+    class FuzzBar < Post
+      define_localized_accessors_for :title
+    end
+
+    foo = FuzzBar.new
+    foo.title = "Cucamonga"
+    foo.save!
+    assert_equal true, foo.respond_to?(:title_en)
+    assert_equal true, foo.respond_to?(:"title_en=")
+    assert_equal true, foo.respond_to?(:title_es)
+    assert_equal true, foo.respond_to?(:"title_es=")
+  end
+
+  test "localized getters behaviour" do
+    class FuzzBar < Post
+      define_localized_accessors_for :title
+    end
+
+    foo = FuzzBar.new
+    foo.title = "EN - title"
+    I18n.locale = :es
+    foo.title = "ES - titulo"
+    foo.save!
+
+    I18n.locale = :en
+    assert_equal "EN - title", foo.title_en
+    assert_equal "ES - titulo", foo.title_es
+  end
+
+  test "localized setters behaviour" do
+    class FuzzBar < Post
+      define_localized_accessors_for :title
+    end
+
+    foo = FuzzBar.new
+    foo.title = "EN - title"
+    I18n.locale = :es
+    foo.title = "ES - titulo"
+    foo.save!
+
+    I18n.locale = :en
+    res = (foo.title_es = "Segundo titulo")
+    assert_equal "Segundo titulo", foo.title_es
+    assert_equal "Segundo titulo", res
+  end
+
+  test "after using localized accessors the I18n.locale should remain the same" do
+    class FuzzBar < Post
+      define_localized_accessors_for :title
+    end
+
+    foo = FuzzBar.new
+    foo.title = "EN - title"
+    I18n.locale = :es
+    foo.title = "ES - titulo"
+    foo.save!
+
+    I18n.locale = :klingon
+    foo.title_es = "Segundo titulo"
+    foo.title_en
+    assert_equal :klingon, I18n.locale
+  end
+
+  test "localized accessors should work for more than one attribute" do
+    class FuzzBar < Post
+      define_localized_accessors_for :title, :text
+    end
+
+    foo = FuzzBar.new
+    foo.title = "EN - title"
+    foo.text = "EN - body text"
+    foo.save!
+    assert_equal true, foo.respond_to?(:title_en)
+    assert_equal true, foo.respond_to?(:"title_en=")
+    assert_equal true, foo.respond_to?(:text_en)
+    assert_equal true, foo.respond_to?(:"text_en=")
+  end
+
+  test ".define_localized_accessors_for :all" do
+    class FuzzBar < Post
+      define_localized_accessors_for :all
+    end
+
+    foo = FuzzBar.new
+    foo.title = "EN - title"
+    foo.text = "EN - body text"
+    foo.save!
+    assert_equal true, foo.respond_to?(:title_en)
+    assert_equal true, foo.respond_to?(:"title_en=")
+    assert_equal true, foo.respond_to?(:text_en)
+    assert_equal true, foo.respond_to?(:"text_en=")
+  end
 end
