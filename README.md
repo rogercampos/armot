@@ -72,10 +72,134 @@ Your translated model will have different contents for each locale transparently
     I18n.locale = :en
     car.name #=> A car
 
+Armot also provides an implementation for the `_changed?` method, so you can
+normally operate as if it was a standard active_record attribute.
+
+    car = Car.create :name => "Ford"
+    car.name = "Honda"
+
+    car.name_chaned? #=> true
+    car.save!
+    car.name_changed? #=> false
+
+
+Reloading caches
+----------------
 
 Be aware that armot doesn't take care of any cache expiration. If you're using
-Memoize with I18n ActiveRecord backend you must remember to reload the backend
-with an observer, for example.
+Memoize with I18n ActiveRecord backend you must remember to reload the
+backend.
+
+Armot provides the `reload_armot!` callback which is called on the
+instance after performing the changes. For example:
+
+    class Post < ActiveRecord::Base
+      # ...
+
+      def reload_armot!
+        I18n.backend.reload!
+        Rails.cache.clear
+      end
+    end
+
+
+Find_by dynamic methods
+-----------------------
+
+Armot also writes the dynamic `find_by` and `find_by!` methods in order to
+fetch a record from database given a specific content for an armotized
+attribute. It will *only* look for translations in the current language, and
+it will not perform any kind of fallback mechanism. For example:
+
+    I18n.locale = :en
+    post = Post.create :title => "Title in english"
+
+    Post.find_by_title "Title in english" #=> <post>
+    Post.find_by_title "Not found"  #=> nil
+    Post.find_by_title! "Not found" #=> ActiveRecord::RecordNotFound raised
+
+    I18n.locale = :es
+    Post.find_by_title "Title in english" #=> nil
+
+
+Fallbacks
+---------
+
+When reading the contents from an instance (not find_by methods) Armot works
+with your current I18n setup for fallbacks, just as if you were performing a
+I18n.t lookup.
+
+
+Modularized implementation
+--------------------------
+
+All the methods Armot provides are implemented in modules injected in your
+class (ArmotInstanceMethods and ArmotClassMethods). This means that you can
+override them in order to include custom logic. For instance if you are
+translating the `slug_url` attribute on your Post model, maybe you have a
+setter like this:
+
+    class Post
+      def slug_url=(value)
+        self[:value] = ConvertToSafeUrl(value)
+      end
+
+      def to_param
+        slug_url
+      end
+    end
+
+Now if you want to armotize this slug_url attribute and still perform this
+logic, you could do that:
+
+    class Post
+      def slug_url=(value)
+        super(ConvertToSafeUrl(value))
+      end
+    end
+
+Armotized_attributes
+--------------------
+
+You can get a list of all the currently armotized attributes on a class by
+calling:
+
+    Post.armotized_attributes #=> [:title, :text]
+
+
+Defining localized accessors
+----------------------------
+
+There are situations in which it's useful for you to have localized accessors for
+your armotized attributes, so you don't need to change the current language in
+order to get the value for an attribute in that language, for instance:
+
+    I18n.locale = :en
+    post = Post.create :title => "ENG title"
+    I18n.locale = :es
+    post.title = "SP title"
+    post.save!
+
+    I18n.locale = :en
+    post.title_en #=> "ENG title"
+    post.title_es #=> "SP title"
+
+Armot provides now an automatic way to define these methods:
+
+    class Post
+      define_localized_accessors_for :title
+    end
+
+This will make available the `title_en` and `title_en=` methods (also in every
+other languages that may be available, as returned from
+`I18n.available_locales`). You can also set up these methods for all your
+armotized attributes using the `:all` keyword:
+
+
+    class Post
+      define_localized_accessors_for :all
+    end
+
 
 
 Development with armot
