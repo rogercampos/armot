@@ -15,6 +15,26 @@ module Armot
           define_method :armotized_attributes do
             attributes.map(&:to_sym)
           end
+
+          define_method :define_localized_accessors_for do |*localizable_attributes|
+            localizable_attributes = armotized_attributes if localizable_attributes == [:all]
+
+            localizable_attributes.each do |attr|
+              I18n.available_locales.each do |locale|
+                define_method "#{attr}_#{locale}" do
+                  wrap_in_locale(locale) do
+                    send attr
+                  end
+                end
+
+                define_method "#{attr}_#{locale}=" do |value|
+                  wrap_in_locale(locale) do
+                    send "#{attr}=", value
+                  end
+                end
+              end
+            end
+          end
         end
 
         attributes.each do |attribute|
@@ -103,32 +123,9 @@ module Armot
       # configure model
       def make_it_armot!
         include InstanceMethods
-        extend ClassMethods
 
         after_save :update_translations!
         after_destroy :remove_i18n_entries
-      end
-    end
-
-    module ClassMethods
-      private
-
-      def define_localized_accessors_for(*attributes)
-        attributes.each do |attr|
-          I18n.available_locales.each do |locale|
-            define_method "#{attr}_#{locale}" do
-              wrap_in_locale(locale) do
-                send attr
-              end
-            end
-
-            define_method "#{attr}_#{locale}=" do |value|
-              wrap_in_locale(locale) do
-                send "#{attr}=", value
-              end
-            end
-          end
-        end
       end
     end
 
