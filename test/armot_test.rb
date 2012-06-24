@@ -381,4 +381,20 @@ class ArmotTest < ActiveSupport::TestCase
     res = (post.title = "Foo bar title")
     assert_equal "Foo bar title", res
   end
+
+  test ".define_localized_accessors_for should define localized accessors" do
+    post = Post.last
+    I18n.locale = :es
+    post.title = "SP titulo"
+    post.save!
+    Post.instance_eval do
+      define_localized_accessors_for :title
+    end
+
+    assert_equal "English title", post.title_en
+    assert_equal "SP titulo", post.title_es
+  end
+
+  test "an armotized class should not have armotized accessors by default"
+  test "after using a localized accessor the I18n.locale should remain the same"
 end

@@ -103,15 +103,38 @@ module Armot
       # configure model
       def make_it_armot!
         include InstanceMethods
+        extend ClassMethods
 
         after_save :update_translations!
         after_destroy :remove_i18n_entries
       end
     end
 
-    module InstanceMethods
+    module ClassMethods
+      private
 
-    private
+      def define_localized_accessors_for(*attributes)
+        attributes.each do |attr|
+          I18n.available_locales.each do |locale|
+            define_method "#{attr}_#{locale}" do
+              wrap_in_locale(locale) do
+                send attr
+              end
+            end
+
+            define_method "#{attr}_#{locale}=" do |value|
+              wrap_in_locale(locale) do
+                send "#{attr}=", value
+              end
+            end
+          end
+        end
+      end
+    end
+
+    module InstanceMethods
+      private
+
       def armot_attributes
         @armot_attributes ||= Hash.new { |hash, key| hash[key] = {} }
       end
@@ -133,6 +156,14 @@ module Armot
       def remove_i18n_entries
         t = I18n::Backend::ActiveRecord::Translation.arel_table
         I18n::Backend::ActiveRecord::Translation.delete_all(t[:key].matches("armot.#{self.class.to_s.underscore.pluralize}%_#{id}"))
+      end
+
+      def wrap_in_locale(locale)
+        aux = I18n.locale
+        I18n.locale = locale.to_sym
+        res = yield
+        I18n.locale = aux
+        res
       end
     end
   end
