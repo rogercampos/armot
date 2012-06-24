@@ -17,16 +17,22 @@ module Armot
           end
 
           define_method :define_localized_accessors_for do |*localizable_attributes|
+            reload_localized_accessors_for *localizable_attributes
+          end
+
+          define_method :reload_localized_accessors_for do |*localizable_attributes|
             localizable_attributes = armotized_attributes if localizable_attributes == [:all]
 
             localizable_attributes.each do |attr|
               I18n.available_locales.each do |locale|
+                next if respond_to?(:"#{attr}_#{locale}")
                 define_method "#{attr}_#{locale}" do
                   armot_wrap_in_locale(locale) do
                     send attr
                   end
                 end
 
+                next if respond_to?(:"#{attr}_#{locale}=")
                 define_method "#{attr}_#{locale}=" do |value|
                   armot_wrap_in_locale(locale) do
                     send "#{attr}=", value

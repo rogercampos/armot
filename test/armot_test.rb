@@ -487,4 +487,27 @@ class ArmotTest < ActiveSupport::TestCase
     assert_equal true, foo.respond_to?(:text_en)
     assert_equal true, foo.respond_to?(:"text_en=")
   end
+
+  test "reload_localized_accessors_for" do
+    class FuzzBar < Post
+      define_localized_accessors_for :title
+    end
+
+    foo = FuzzBar.new
+    foo.title = "EN - title"
+    foo.save!
+
+    assert_equal [:en].sort, I18n.available_locales.sort
+    assert_equal false, foo.respond_to?(:title_sk)
+
+    I18n.locale = :sk
+    foo.title = "Skandinavian title"
+    foo.save!
+
+    assert_equal [:en, :sk].sort, I18n.available_locales.sort
+    assert_equal false, foo.respond_to?(:title_sk)
+
+    FuzzBar.reload_localized_accessors_for :title
+    assert_equal true, foo.respond_to?(:title_sk)
+  end
 end
