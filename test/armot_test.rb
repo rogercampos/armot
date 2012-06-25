@@ -510,4 +510,14 @@ class ArmotTest < ActiveSupport::TestCase
     FuzzBar.reload_localized_accessors_for :title
     assert_equal true, foo.respond_to?(:title_sk)
   end
+
+  test "should work if the I18n backend has not fallbacks" do
+    with_no_method(I18n.singleton_class, :fallbacks) do
+      assert_equal false, I18n.respond_to?(:fallbacks)
+
+      post = Post.last
+      I18n.locale = :pt
+      assert_equal nil, post.title
+    end
+  end
 end

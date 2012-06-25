@@ -69,3 +69,12 @@ def count_query_updates_for(clazz)
   logger.close
   log_stream.string.scan(/UPDATE \"#{clazz.constantize.table_name}\"/).size
 end
+
+def with_no_method(target, name)
+  target.send(:alias_method, :method_backup, name)
+  target.send(:remove_method, name)
+  yield
+
+ensure
+  target.send(:alias_method, name, :method_backup)
+end
