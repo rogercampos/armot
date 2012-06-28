@@ -21,10 +21,16 @@ module Armot
           end
 
           define_method :reload_localized_accessors_for do |*localizable_attributes|
-            localizable_attributes = armotized_attributes if localizable_attributes == [:all]
+            localizable_attributes = armotized_attributes if localizable_attributes.first == :all
+
+            locales_to_define = if localizable_attributes.last.is_a?(Hash) && localizable_attributes.last[:locales]
+              localizable_attributes.last[:locales]
+            else
+              I18n.available_locales
+            end
 
             localizable_attributes.each do |attr|
-              I18n.available_locales.each do |locale|
+              locales_to_define.each do |locale|
                 next if respond_to?(:"#{attr}_#{locale}")
                 define_method "#{attr}_#{locale}" do
                   armot_wrap_in_locale(locale) do

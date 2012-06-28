@@ -520,4 +520,16 @@ class ArmotTest < ActiveSupport::TestCase
       assert_equal nil, post.title
     end
   end
+
+  test "define_localized_accessors_for with specific locales" do
+    class FuzzBarTwo < Post
+      define_localized_accessors_for :title, :locales => [:love, :hate]
+    end
+
+    foo = FuzzBarTwo.new
+    assert_equal true, foo.respond_to?(:title_love)
+    assert_equal true, foo.respond_to?(:"title_love=")
+    assert_equal true, foo.respond_to?(:title_hate)
+    assert_equal true, foo.respond_to?(:"title_hate=")
+  end
 end
