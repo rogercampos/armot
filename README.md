@@ -200,6 +200,12 @@ armotized attributes using the `:all` keyword:
       define_localized_accessors_for :all
     end
 
+You can also explicitly set the locales in which the accessors should be
+defined, using this syntax:
+
+    class Post
+      define_localized_accessors_for :all, :locales => [:klingon, :pt]
+    end
 
 
 Development with armot
