@@ -66,6 +66,30 @@ class ArmotTest < ActiveSupport::TestCase
     assert_equal true, post.valid?
   end
 
+  test 'validates_armotized_presence_of should work with one locale' do
+    class AnotherValidatedPost < Post
+      validates_armotized_presence_of :title, :ca
+    end
+
+    post = AnotherValidatedPost.new
+    I18n.locale = :ca
+    post.title = 'soc una cucota'
+    assert_equal true, post.valid?
+  end
+
+  test 'validates_armotized_presence_of fails when no valid locales provided' do
+    class WrongValidatedPost < Post
+      validates_armotized_presence_of :title, 1234
+    end
+
+    post = WrongValidatedPost.new
+    begin
+      post.valid?
+      fail
+    rescue
+    end
+  end
+
   test 'temporary locale switch should not clear changes' do
     I18n.locale = :de
     post = Post.first

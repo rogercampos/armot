@@ -189,6 +189,7 @@ module Armot
         def validate(record)
           attr_name = options[:attr]
           locales = options[:locales]
+          locales = [locales] if [ String, Symbol ].include?(locales.class)
 
           valid = locales.map do |locale|
             I18n.locale = locale.to_sym
