@@ -1,5 +1,6 @@
-require 'test_helper'
+# encoding: UTF-8
 
+require 'test_helper'
 
 def to_method_name(name)
   if Gem::Version.new(RUBY_VERSION.dup) >= Gem::Version.new("1.9")
@@ -45,12 +46,61 @@ class ArmotTest < ActiveSupport::TestCase
     assert_equal 'English title', post.title
   end
 
-  test 'validates_presence_of should work' do
-    post = Post.new
+  test 'validates_armotized_presence_of should work' do
+    class ValidatedPost < Post
+      validates_armotized_presence_of :title, %w{ en ca es }
+    end
+
+    post = ValidatedPost.new
     assert_equal false, post.valid?
 
+    I18n.locale = :en
     post.title = 'English title'
+    assert_equal false, post.valid?
+
+    { :ca => 'Títol català', :es => 'Título castellano' }.each do |locale, title|
+      I18n.locale = locale
+      post.title = title
+    end
+
     assert_equal true, post.valid?
+  end
+
+  test 'validates_armotized_presence_of should work with one locale' do
+    class AnotherValidatedPost < Post
+      validates_armotized_presence_of :title, :ca
+    end
+
+    post = AnotherValidatedPost.new
+    I18n.locale = :ca
+    post.title = 'soc una cucota'
+    assert_equal true, post.valid?
+  end
+
+  test 'validates_armotized_presence_of fails when no valid locales provided' do
+    class WrongValidatedPost < Post
+      validates_armotized_presence_of :title, 1234
+    end
+
+    post = WrongValidatedPost.new
+    begin
+      post.valid?
+      fail
+    rescue
+    end
+  end
+
+  test 'validates_armotized_presence_of fails when no valid attr provided' do
+    class AnotherWrongValidatedPost < Post
+      validates_armotized_presence_of :invented_title, %w{ en ca es }
+    end
+
+    post = AnotherWrongValidatedPost.new
+    begin
+      post.valid?
+      fail
+    rescue
+    end
   end
 
   test 'temporary locale switch should not clear changes' do
