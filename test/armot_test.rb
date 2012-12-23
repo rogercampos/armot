@@ -90,6 +90,19 @@ class ArmotTest < ActiveSupport::TestCase
     end
   end
 
+  test 'validates_armotized_presence_of fails when no valid attr provided' do
+    class AnotherWrongValidatedPost < Post
+      validates_armotized_presence_of :invented_title, %w{ en ca es }
+    end
+
+    post = AnotherWrongValidatedPost.new
+    begin
+      post.valid?
+      fail
+    rescue
+    end
+  end
+
   test 'temporary locale switch should not clear changes' do
     I18n.locale = :de
     post = Post.first
