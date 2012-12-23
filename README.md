@@ -207,6 +207,24 @@ defined, using this syntax:
       define_localized_accessors_for :all, :locales => [:klingon, :pt]
     end
 
+Presence validators
+----------
+
+If you use the standard presence validator from Rails, as in
+
+    validates_presence_of :some_attribute
+
+Only the value for the current locale will be checked. However, you
+might want to check the presence of the value for a specific set of
+locales. If this is your purpose, you can use:
+
+    validates_armotized_presence_of :some_attribute, %w{ en ca es }
+
+where the first parameter is the attribute you want to check presence
+of, and the second is the set of locales for which you want to check the
+presence of the attribute. Note that the locales can either be a string
+or symbol array (as in the example above), or a single string or symbol
+in case you only want to do the check for one locale.
 
 Development with armot
 ----------------------
