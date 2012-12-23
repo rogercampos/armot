@@ -29,7 +29,6 @@ end
 
 class Post < ActiveRecord::Base
   armotize :title, :text
-  validates_presence_of :title
 end
 
 class Product < ActiveRecord::Base
