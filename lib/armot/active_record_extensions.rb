@@ -105,8 +105,12 @@ module Armot
               armot_attributes[I18n.locale]["#{attribute}"].present?
             end
 
+            define_method :"#{attribute}_raw" do
+              return armot_attributes[I18n.locale]["#{attribute}"]
+            end
+
             define_method :"#{attribute}" do
-              return armot_attributes[I18n.locale]["#{attribute}"] if armot_attributes[I18n.locale]["#{attribute}"]
+              return send("#{attribute}_raw") if armot_attributes[I18n.locale]["#{attribute}"]
 
               if armot_attributes.any? && I18n.respond_to?(:fallbacks)
                 I18n.fallbacks[I18n.locale].each do |fallback|
@@ -128,6 +132,10 @@ module Armot
         self.const_set("ArmotClassMethods", class_mixin)
         include self.const_get("ArmotInstanceMethods") unless self.included_modules.map(&:to_s).include?("#{self}::ArmotInstanceMethods")
         extend self.const_get("ArmotClassMethods") unless self.singleton_class.included_modules.map(&:to_s).include?("#{self}::ArmotClassMethods")
+      end
+
+      def validates_armotized_presence_of(attr_name, locales)
+        validates_with Armot::ActiveRecordExtensions::Validations::PresenceValidator, :attr => attr_name, :locales => locales
       end
 
     private
@@ -173,6 +181,23 @@ module Armot
         res = yield
         I18n.locale = aux
         res
+      end
+    end
+
+    module Validations
+      class PresenceValidator < ActiveModel::Validator
+        def validate(record)
+          attr_name = options[:attr]
+          locales = options[:locales]
+          locales = [locales] if [ String, Symbol ].include?(locales.class)
+
+          valid = locales.map do |locale|
+            I18n.locale = locale.to_sym
+            record.send("#{attr_name}_raw").present?
+          end.inject(:&)
+
+          record.errors.add(attr_name, "has to be present for locales #{locales.to_sentence}") unless valid
+        end
       end
     end
   end
